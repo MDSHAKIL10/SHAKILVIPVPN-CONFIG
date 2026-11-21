@@ -1,0 +1,41 @@
+{
+  "servers": [
+    {
+      "name": "🇩🇪 UDP 53 (Hysteria)",
+      "protocol": "hysteria1",
+      "host": "v2.skvps.xyz",
+      "port": "20000-50000",
+      "obfs": "kobe"
+    },
+    {
+      "name": "🇸🇬 SG V2Ray Server 443",
+      "protocol": "v2ray",
+      "host": "v2.skvps.xyz",
+      "port": "443",
+      "tls": true
+    },
+    {
+      "name": "🇸🇬 SG V2Ray Server 80",
+      "protocol": "v2ray",
+      "host": "v2.skvps.xyz",
+      "port": "80",
+      "tls": false
+    }
+  ],
+  "payloads": [
+    {
+      "name": "🇰🇼 Kuwait Zain Free-Net",
+      "network": "V2ray/Xray",
+      "path": "/ws-kobe",
+      "sni": "zain.com",
+      "bugHost": "zain.com"
+    },
+    {
+      "name": "🇸🇦 SAUDI STC FREE 01",
+      "network": "V2ray/Xray",
+      "path": "/ws-kobe",
+      "sni": "stc.com.sa",
+      "bugHost": "dns2-448947328279.europe-west3.run.app"
+    }
+  ]
+}
