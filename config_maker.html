@@ -1,1 +1,83 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHAKILVIPVPN Config Locker</title>
+<style>
+  body { background: #0d1117; color: #e6edf3; font-family: sans-serif; padding: 15px; }
+  h2 { color: #38bdf8; text-align: center; }
+  textarea, input { width: 100%; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 8px; padding: 10px; margin: 8px 0; box-sizing: border-box; }
+  button { width: 100%; background: linear-gradient(90deg, #0284c7, #7c3aed); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; }
+</style>
+</head>
+<body>
+<h2>SHAKILVIPVPN Config Locker</h2>
+<label>আপনার সার্ভার কনফিগ JSON বসান:</label>
+<textarea id="rawJson" rows="12">[
+  [
+  {
+    "name": "SK UDP (Hysteria)",
+    "protocol": "hysteria1",
+    "config": {
+      "server": "91.107.175.87:20000-50000",
+      "obfs": "kobe",
+      "auth_str": "[user]",
+      "up_mbps": 10,
+      "down_mbps": 20,
+      "retry": 3,
+      "retry_interval": 1,
+      "socks5": { "listen": "127.0.0.1:1080" },
+      "http": { "listen": "127.0.0.1:8989" },
+      "insecure": true,
+      "lazy_start": true,
+      "ca": "",
+      "recv_window_conn": 196608,
+      "recv_window": 491520
+    }
+  },
+  {
+    "name": "SK VLESS 443 (TLS)",
+    "protocol": "v2ray",
+    "payload": "vless://[skkey]@v2.skvps.xyz:443?path=%2Fws-kobe&security=tls&encryption=none&host=[skhost]&type=ws&sni=[skhost]#ws-example-443"
+  },
+  {
+    "name": "SG VLESS 80 (WS)",
+    "protocol": "v2ray",
+    "payload": "vless://[skkey]@v2.skvps.xyz:80?path=/ws-kobe&security=none&encryption=none&host=[skhost]&type=ws#ws-example-80"
+  },
+  {
+    "name": "GCP VLESS 443 (Cloud Run)",
+    "protocol": "v2ray",
+    "payload": "vless://[skkey]@[skhost]:443?path=/ws-kobe&security=tls&encryption=none&host=dns2-448947328279.europe-west3.run.app&type=ws&sni=[skhost]#ws-example-gcp"
+  }
+]
+
+]</textarea>
+<button onclick="lockConfig()">লক করুন এবং servers.svip ডাউনলোড করুন</button>
+
+<script>
+function lockConfig() {
+  const secretKey = "SHAKILVIPVPN_2026_LOCK";
+  const text = document.getElementById("rawJson").value;
+  try {
+    JSON.parse(text); // JSON ঠিক আছে কি না যাচাই
+  } catch (e) {
+    alert("JSON ফরম্যাটে ভুল আছে! কমা বা ব্র্যাকেট চেক করুন।");
+    return;
+  }
+  let encoded = "";
+  for (let i = 0; i < text.length; i++) {
+    encoded += String.fromCharCode(text.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
+  }
+  const finalData = "SVIP1::" + btoa(unescape(encodeURIComponent(encoded)));
+  const blob = new Blob([finalData], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "servers.svip";
+  a.click();
+}
+</script>
+</body>
+</html>
 
