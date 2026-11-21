@@ -21,7 +21,18 @@ jobs:
           mkdir -p www && cp config_maker.html www/index.html
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "SHAKILVIPVPN Gen" "com.shakilvipvpn.gen" --web-dir=www
+          cat << 'EOF' > capacitor.config.json
+          {
+            "appId": "com.shakilvipvpn.gen",
+            "appName": "SHAKILVIPVPN Gen",
+            "webDir": "www",
+            "plugins": {
+              "CapacitorHttp": {
+                "enabled": true
+              }
+            }
+          }
+          EOF
           npx cap add android
           npx cap sync android
           cat << 'EOF' >> android/app/build.gradle
