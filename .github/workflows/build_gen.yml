@@ -1,0 +1,32 @@
+name: Build SHAKILVIPVPN Gen APK
+on:
+  push:
+    branches: [ server_script, main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Build Android Gen APK
+        run: |
+          mkdir -p www && cp config_maker.html www/index.html
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "SHAKILVIPVPN Gen" "com.shakilvipvpn.gen" --web-dir=www
+          npx cap add android
+          npx cap sync android
+          cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - name: Upload Gen APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHAKILVIPVPN-Gen-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
