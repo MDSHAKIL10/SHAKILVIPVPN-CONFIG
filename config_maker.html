@@ -1,73 +1,39 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SHAKILVIPVPN Configuration Publisher</title>
 <style>
-*{box-sizing:border-box;font-family:sans-serif}
-body{margin:0;background:#0a0e17;color:#fff;padding-bottom:80px}
-.top{background:#1e3a5f;padding:14px;display:flex;justify-content:space-between;align-items:center}
-.btn{background:#0284c7;color:#fff;border:none;padding:8px 12px;border-radius:6px;font-weight:bold}
-.box{padding:14px}
-.card{background:#f8fafc;color:#0f172a;padding:12px;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.fab{position:fixed;bottom:70px;right:18px;width:52px;height:52px;border-radius:50%;background:#0284c7;color:#fff;font-size:26px;border:none}
-.nav{position:fixed;bottom:0;width:100%;background:#1e3a5f;display:flex}
-.nav div{flex:1;text-align:center;padding:14px;font-weight:bold;color:#94a3b8}
-.nav .act{color:#fff;border-top:3px solid #38bdf8}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);padding:20px;z-index:9}
-.mbox{background:#131a2a;padding:16px;border-radius:10px}
-input,select{width:100%;padding:10px;margin:6px 0 12px;background:#0a0e17;color:#fff;border:1px solid #334155;border-radius:6px}
+:root{color-scheme:dark;--bg:#080d18;--card:#111a27;--line:#263545;--teal:#18d7b5;--text:#f4f7fb;--muted:#a9b5c3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}.top{padding:18px max(20px,calc((100% - 900px)/2));background:#0d1925;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}.wrap{max-width:900px;margin:auto;padding:20px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:6px;margin:8px 0}label{color:var(--muted);font-size:12px}input,select{width:100%;padding:11px;border-radius:8px;border:1px solid var(--line);background:#080d18;color:var(--text)}button{padding:10px 15px;border:0;border-radius:8px;background:var(--teal);color:#06251f;font-weight:800;cursor:pointer}button.secondary{background:#243444;color:var(--text)}button.danger{background:#4b2228;color:#ffc6c6}.actions{display:flex;gap:8px;flex-wrap:wrap}.item{padding:12px;border:1px solid var(--line);border-radius:10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}.hint{color:var(--muted);font-size:13px;line-height:1.55}.status{white-space:pre-wrap;color:var(--teal);padding:10px 0}.check{display:flex;gap:8px;align-items:center}.check input{width:auto}.hidden{display:none!important}@media(max-width:600px){.row{grid-template-columns:1fr}.top{padding:14px 16px}.wrap{padding:14px}}
 </style>
 </head>
 <body>
-<div class="top"><b>SHAKILVIPVPN Gen</b><button class="btn" id="upBtn" onclick="push()">☁️ UPDATE</button></div>
-<div id="v-home" class="box" style="display:none"><div class="mbox"><b>GitHub Token</b><input type="password" id="tk" placeholder="ghp_..."><button class="btn" style="width:100%" onclick="saveTk()">Save Token</button></div></div>
-<div id="v-srv" class="box"></div>
-<div id="v-pay" class="box" style="display:none"></div>
-<button class="fab" id="fab" onclick="openM()">+</button>
-<div class="nav"><div onclick="tab('home',this)">HOME</div><div class="act" onclick="tab('srv',this)">SERVER</div><div onclick="tab('pay',this)">PAYLOAD</div></div>
-<div class="modal" id="mod"><div class="mbox"><h4 id="mt">Add</h4><div id="mf"></div><button class="btn" style="width:100%" onclick="saveI()">Save</button><button class="btn" style="width:100%;background:#475569;margin-top:8px" onclick="closeM()">Close</button></div></div>
+<header class="top"><strong>🛡 SHAKILVIPVPN · CONFIG PUBLISHER</strong><span>Schema v1</span></header>
+<main class="wrap">
+<section class="card"><h2>Publish configurations</h2><p class="hint">Creates a public, credential-free JSON configuration document. The mobile app fetches the published file automatically and on manual refresh. A GitHub token with contents-write access is required only for publishing; use a narrowly scoped fine-grained token and do not share this browser profile. This static Pages/raw-content endpoint is a read API, not an authenticated server-side API.</p>
+<div class="row"><div class="field"><label>GitHub fine-grained token (not stored)</label><input id="token" type="password" autocomplete="off" placeholder="Token with Contents: Read and write"></div><div class="field"><label>Configuration version (integer)</label><input id="version" type="number" min="1" value="1"></div></div><div class="actions"><button id="publish">Publish configuration</button><button class="secondary" id="export">Download JSON</button></div><div id="status" class="status" role="status"></div></section>
+<section class="card"><h2>Server configurations</h2><div id="list"></div><button id="add">＋ Add server</button></section>
+<section class="card"><h3>Protocol compatibility</h3><p class="hint">VLESS/Xray configurations are supported by the Android client. UDP/Hysteria entries can be authored and published as typed data, but the current app intentionally rejects them because no Hysteria engine is integrated. TLS and WebSocket options are kept separate from UDP fields. Never include a server UUID, password, private key, or authentication token in this public file.</p></section>
+</main>
+<template id="server-template"><article class="card server">
+<div class="row">
+<div class="field"><label>Server name</label><input data-k="name" required></div><div class="field"><label>Protocol</label><select data-k="protocol"><option value="vless">VLESS / Xray</option><option value="hysteria2">Hysteria 2 (UDP; not supported by current app)</option></select></div>
+<div class="field"><label>Server IP / address</label><input data-k="address" required placeholder="hostname or IP"></div><div class="field"><label>Port</label><input data-k="port" type="number" min="1" max="65535" required value="443"></div>
+<div class="field"><label>Payload</label><input data-k="payload" placeholder="Optional request payload metadata"></div><div class="field"><label>WebSocket Host header</label><input data-k="host" placeholder="Optional Host header"></div>
+<div class="field"><label>SNI</label><input data-k="sni" placeholder="TLS server name"></div><div class="field"><label>WebSocket path</label><input data-k="wsPath" value="/" placeholder="/"></div>
+<div class="field"><label>Country flag (emoji)</label><input data-k="countryFlag" value="🌐" maxlength="8"></div><div class="field"><label>Server category</label><input data-k="category" value="General"></div>
+<div class="field"><label>Per-server config version</label><input data-k="version" type="number" min="1" value="1"></div>
+<label class="check"><input data-k="tls" type="checkbox"> TLS enabled</label>
+</div><div class="actions"><button class="danger remove">Remove</button></div></article></template>
 <script>
-const OW="MDSHAKIL10",RP="SHAKILVIPVPN-CONFIG",FL="servers.svip",KY="SHAKILVIPVPN_2026_LOCK";
-let cur="srv",ei=-1,db=JSON.parse(localStorage.getItem("svip_db"))||{
-servers:[
-{name:"🇩🇪 DE UDP (Hysteria)",protocol:"hysteria1",host:"91.107.175.87",port:"20000-50000",obfs:"kobe"},
-{name:"🇸🇬 SG VLESS 443",protocol:"v2ray",host:"v2.skvps.xyz",port:"443",tls:true},
-{name:"🇸🇬 SG VLESS 80",protocol:"v2ray",host:"v2.skvps.xyz",port:"80",tls:false}
-],
-payloads:[
-{name:"⚡ UDP Auto-Mode",mode:"udp",path:"",sni:"",bugHost:""},
-{name:"🇸🇦 STC 443 Business",mode:"443",path:"/ws-kobe",sni:"stc.com.sa",bugHost:"dns2-448947328279.europe-west3.run.app"},
-{name:"🇧🇩 Free Net 80 WS",mode:"80",path:"/ws-kobe",sni:"",bugHost:"://facebook.com"}
-]};
-window.onload=()=>{document.getElementById("tk").value=localStorage.getItem("svip_tk")||"";draw();};
-function tab(t,el){cur=t;document.querySelectorAll(".nav div").forEach(x=>x.className="");el.className="act";
-["home","srv","pay"].forEach(x=>document.getElementById("v-"+x).style.display=x===t?"block":"none");
-document.getElementById("fab").style.display=t==="home"?"none":"block";}
-function draw(){localStorage.setItem("svip_db",JSON.stringify(db));
-document.getElementById("v-srv").innerHTML=db.servers.map((s,i)=>`<div class="card"><div><b>${s.name}</b><br><small>${s.protocol} • ${s.host}:${s.port}</small></div><div><button onclick="openM(${i})">✏️</button> <button onclick="del('servers',${i})">✖</button></div></div>`).join("");
-document.getElementById("v-pay").innerHTML=db.payloads.map((p,i)=>`<div class="card"><div><b>${p.name}</b><br><small>Mode: ${p.mode} • SNI: ${p.sni}</small></div><div><button onclick="openM(${i})">✏️</button> <button onclick="del('payloads',${i})">✖</button></div></div>`).join("");}
-function openM(i=-1){ei=i;const f=document.getElementById("mf");
-if(cur==="srv"){const s=i>=0?db.servers[i]:{name:"",protocol:"v2ray",host:"",port:"443",obfs:"kobe"};
-f.innerHTML=`Name:<input id="a1" value="${s.name}">Type:<select id="a2"><option value="v2ray" ${s.protocol==="v2ray"?"selected":""}>V2Ray</option><option value="hysteria1" ${s.protocol==="hysteria1"?"selected":""}>UDP Hysteria</option></select>Host:<input id="a3" value="${s.host}">Port:<input id="a4" value="${s.port}">Obfs:<input id="a5" value="${s.obfs||"kobe"}">`;}
-else{const p=i>=0?db.payloads[i]:{name:"",mode:"443",path:"/ws-kobe",sni:"",bugHost:""};
-f.innerHTML=`Name:<input id="b1" value="${p.name}">Mode:<select id="b2"><option value="udp" ${p.mode==="udp"?"selected":""}>UDP Only</option><option value="443" ${p.mode==="443"?"selected":""}>443 TLS Only</option><option value="80" ${p.mode==="80"?"selected":""}>80 WS Only</option></select>Path:<input id="b3" value="${p.path}">SNI:<input id="b4" value="${p.sni}">BugHost:<input id="b5" value="${p.bugHost}">`;}
-document.getElementById("mod").style.display="block";}
-function closeM(){document.getElementById("mod").style.display="none";}
-function saveI(){if(cur==="srv"){const pt=document.getElementById("a4").value.trim();const o={name:document.getElementById("a1").value,protocol:document.getElementById("a2").value,host:document.getElementById("a3").value,port:pt,obfs:document.getElementById("a5").value,tls:pt==="443"};if(ei>=0)db.servers[ei]=o;else db.servers.push(o);}
-else{const o={name:document.getElementById("b1").value,mode:document.getElementById("b2").value,path:document.getElementById("b3").value,sni:document.getElementById("b4").value,bugHost:document.getElementById("b5").value};if(ei>=0)db.payloads[ei]=o;else db.payloads.push(o);}
-closeM();draw();}
-function del(t,i){db[t].splice(i,1);draw();}
-function saveTk(){const clean=document.getElementById("tk").value.replace(/[^a-zA-Z0-9_]/g,"");localStorage.setItem("svip_tk",clean);document.getElementById("tk").value=clean;alert("Token Saved!");}
-function enc(t){let e="";for(let i=0;i<t.length;i++)e+=String.fromCharCode(t.charCodeAt(i)^KY.charCodeAt(i%KY.length));return"SVIP1::"+btoa(unescape(encodeURIComponent(e)));}
-async function push(){const tk=(localStorage.getItem("svip_tk")||"").replace(/[^a-zA-Z0-9_]/g,"");if(!tk){alert("আগে HOME ট্যাবে Token দিন!");return;}
-const b=document.getElementById("upBtn");b.innerText="⏳...";const c=btoa(enc(JSON.stringify(db)));
-const u="https://github.com"+OW+"/"+RP+"/contents/"+FL;
-const hdr={"Authorization":"token "+tk,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"};
-try{let sha="";const g=await fetch(u+"?t="+Date.now(),{headers:hdr});if(g.ok)sha=(await g.json()).sha;
-const p=await fetch(u,{method:"PUT",headers:hdr,body:JSON.stringify({message:"Up",content:c,branch:"server_script",sha:sha||undefined})});
-if(p.ok){b.innerText="✅ DONE";}else{const err=await p.text();alert("GitHub Error "+p.status+": "+err);b.innerText="❌ ERR";}
-setTimeout(()=>b.innerText="☁️ UPDATE",2500);}catch(e){alert("Network/Token Error: "+e);b.innerText="☁️ UPDATE";}}
+'use strict';
+const OWNER='MDSHAKIL10',REPO='SHAKILVIPVPN-CONFIG',BRANCH='server_script',FILE='servers.json';
+const $=s=>document.querySelector(s), list=$('#list'), status=$('#status');
+function addServer(value={}){const node=$('#server-template').content.firstElementChild.cloneNode(true);for(const el of node.querySelectorAll('[data-k]')){const k=el.dataset.k;if(el.type==='checkbox')el.checked=value[k]===true;else if(value[k]!==undefined)el.value=value[k]}node.querySelector('.remove').onclick=()=>node.remove();list.append(node)}
+function data(){const servers=[...list.querySelectorAll('.server')].map(card=>{const out={};for(const el of card.querySelectorAll('[data-k]'))out[el.dataset.k]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value):el.value.trim();if(!out.name||!out.address||!Number.isInteger(out.port)||out.port<1||out.port>65535)throw Error('Each server needs a name, address, and valid port.');if(out.tls&&out.protocol==='vless'&&!out.sni)throw Error('VLESS TLS server requires SNI.');return out});if(!servers.length)throw Error('Add at least one server.');return {version:Number($('#version').value)||1,updatedAt:new Date().toISOString(),servers}}
+function download(){const blob=new Blob([JSON.stringify(data(),null,2)+'\n'],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=FILE;a.click();URL.revokeObjectURL(a.href)}
+$('#add').onclick=()=>addServer();$('#export').onclick=()=>{try{download();status.textContent='JSON downloaded.'}catch(e){status.textContent=e.message}};
+$('#publish').onclick=async()=>{const btn=$('#publish'),token=$('#token').value.trim();if(!token){status.textContent='Enter a scoped token to publish.';return}btn.disabled=true;status.textContent='Publishing…';try{const document=data();const url=`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`;const headers={'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};let current=await fetch(`${url}?ref=${BRANCH}`,{headers});let sha;if(current.ok)sha=(await current.json()).sha;else if(current.status!==404)throw Error(`Read failed: HTTP ${current.status} ${await current.text()}`);const content=btoa(unescape(encodeURIComponent(JSON.stringify(document,null,2)+'\n')));const response=await fetch(url,{method:'PUT',headers,body:JSON.stringify({message:`Publish VPN config v${document.version}`,content,branch:BRANCH,...(sha?{sha}:{})})});if(!response.ok)throw Error(`Publish failed: HTTP ${response.status} ${await response.text()}`);status.textContent=`Published ${FILE} v${document.version}. Allow GitHub Pages/raw content a short time to update, then refresh the Android app.`;$('#token').value=''}catch(e){status.textContent=e.message}finally{btn.disabled=false}};
+addServer();
 </script>
-</body>
-</html>
+</body></html>
