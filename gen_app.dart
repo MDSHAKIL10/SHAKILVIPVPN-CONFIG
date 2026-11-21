@@ -75,7 +75,7 @@ class _GenHomeState extends State<GenHome> {
     }
     setState(() => _busy = true);
     try {
-      final api = Uri.parse('https://github.com');
+            final api = Uri.https('api.' + 'github.com', '/repos/$owner/$repo/contents/$file');
       final hdr = {'Authorization': 'token $tk', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'};
       String? sha;
       final g = await http.get(api, headers: hdr);
