@@ -3,81 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SHAKILVIPVPN Config Locker</title>
+<title>SHAKILVIPVPN Gen</title>
 <style>
-  body { background: #0d1117; color: #e6edf3; font-family: sans-serif; padding: 15px; }
-  h2 { color: #38bdf8; text-align: center; }
-  textarea, input { width: 100%; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 8px; padding: 10px; margin: 8px 0; box-sizing: border-box; }
-  button { width: 100%; background: linear-gradient(90deg, #0284c7, #7c3aed); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; }
+  * { box-sizing: border-box; font-family: sans-serif; }
+  body { margin: 0; background: #0a0e17; color: #f8fafc; padding-bottom: 85px; }
+  .header { background: #1e3a5f; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+  .header h3 { margin: 0; font-size: 18px; }
+  .push-btn { background: #0284c7; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; font-size: 13px; }
+  .container { padding: 14px; }
+  .card { background: #f8fafc; color: #0f172a; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .card-title { font-weight: bold; font-size: 14px; margin-bottom: 3px; }
+  .card-sub { font-size: 11px; color: #475569; }
+  .actions button { background: #1e293b; color: #fff; border: none; padding: 6px 9px; border-radius: 6px; margin-left: 5px; }
+  .actions button.del { background: #dc2626; }
+  .fab { position: fixed; bottom: 75px; right: 20px; width: 54px; height: 54px; border-radius: 50%; background: #3b5998; color: #fff; font-size: 28px; border: none; }
+  .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #1e3a5f; display: flex; }
+  .nav-item { flex: 1; text-align: center; padding: 14px 0; font-weight: bold; font-size: 13px; color: #94a3b8; }
+  .nav-item.active { color: #fff; border-top: 3px solid #38bdf8; background: #162c46; }
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 20; padding: 20px; overflow-y: auto; }
+  .modal-box { background: #131a2a; padding: 18px; border-radius: 12px; border: 1px solid #334155; }
+  input, select { width: 100%; padding: 10px; margin: 6px 0 12px 0; border-radius: 8px; border: 1px solid #334155; background: #0a0e17; color: #fff; }
+  .btn-save { width: 100%; padding: 12px; background: #0284c7; border: none; color: #fff; font-weight: bold; border-radius: 8px; }
 </style>
 </head>
 <body>
-<h2>SHAKILVIPVPN Config Locker</h2>
-<label>আপনার সার্ভার কনফিগ JSON বসান:</label>
-<textarea id="rawJson" rows="12">[
-  [
-  {
-    "name": "SK UDP (Hysteria)",
-    "protocol": "hysteria1",
-    "config": {
-      "server": "91.107.175.87:20000-50000",
-      "obfs": "kobe",
-      "auth_str": "[user]",
-      "up_mbps": 10,
-      "down_mbps": 20,
-      "retry": 3,
-      "retry_interval": 1,
-      "socks5": { "listen": "127.0.0.1:1080" },
-      "http": { "listen": "127.0.0.1:8989" },
-      "insecure": true,
-      "lazy_start": true,
-      "ca": "",
-      "recv_window_conn": 196608,
-      "recv_window": 491520
-    }
-  },
-  {
-    "name": "SK VLESS 443 (TLS)",
-    "protocol": "v2ray",
-    "payload": "vless://[skkey]@v2.skvps.xyz:443?path=%2Fws-kobe&security=tls&encryption=none&host=[skhost]&type=ws&sni=[skhost]#ws-example-443"
-  },
-  {
-    "name": "SG VLESS 80 (WS)",
-    "protocol": "v2ray",
-    "payload": "vless://[skkey]@v2.skvps.xyz:80?path=/ws-kobe&security=none&encryption=none&host=[skhost]&type=ws#ws-example-80"
-  },
-  {
-    "name": "GCP VLESS 443 (Cloud Run)",
-    "protocol": "v2ray",
-    "payload": "vless://[skkey]@[skhost]:443?path=/ws-kobe&security=tls&encryption=none&host=dns2-448947328279.europe-west3.run.app&type=ws&sni=[skhost]#ws-example-gcp"
-  }
-]
 
-]</textarea>
-<button onclick="lockConfig()">লক করুন এবং servers.svip ডাউনলোড করুন</button>
+<div class="header">
+  <h3>SHAKILVIPVPN Gen</h3>
+  <button class="push-btn" onclick="pushToGithub()">☁️ AUTO UPDATE</button>
+</div>
+
+<div id="tab-home" class="container" style="display:none;">
+  <div class="modal-box">
+    <h4>GitHub Token (একবার সেভ করুন)</h4>
+    <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+    <button class="btn-save" onclick="saveToken()">Save Token</button>
+  </div>
+</div>
+
+<div id="tab-server" class="container"></div>
+<div id="tab-payload" class="container" style="display:none;"></div>
+
+<button class="fab" id="fabBtn" onclick="openModal()">+</button>
+
+<div class="bottom-nav">
+  <div class="nav-item" onclick="switchTab('home', this)">HOME</div>
+  <div class="nav-item active" onclick="switchTab('server', this)">SERVER</div>
+  <div class="nav-item" onclick="switchTab('payload', this)">PAYLOAD</div>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="modal-box">
+    <h4 id="modalTitle">Add Item</h4>
+    <div id="modalFields"></div>
+    <button class="btn-save" onclick="saveItem()">Save</button>
+    <button class="btn-save" style="background:#475569; margin-top:8px;" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
 
 <script>
-function lockConfig() {
-  const secretKey = "SHAKILVIPVPN_2026_LOCK";
-  const text = document.getElementById("rawJson").value;
-  try {
-    JSON.parse(text); // JSON ঠিক আছে কি না যাচাই
-  } catch (e) {
-    alert("JSON ফরম্যাটে ভুল আছে! কমা বা ব্র্যাকেট চেক করুন।");
-    return;
-  }
-  let encoded = "";
-  for (let i = 0; i < text.length; i++) {
-    encoded += String.fromCharCode(text.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
-  }
-  const finalData = "SVIP1::" + btoa(unescape(encodeURIComponent(encoded)));
-  const blob = new Blob([finalData], { type: "text/plain" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "servers.svip";
-  a.click();
-}
-</script>
-</body>
-</html>
+const OWNER = "MDSHAKIL10", REPO = "SHAKILVIPVPN-CONFIG", FILE_PATH = "servers.svip", SECRET_KEY = "SHAKILVIPVPN_2026_LOCK";
+let currentTab = "server", editIndex = -1;
 
+let appData = JSON.parse(localStorage.getItem("svip_gen_v2")) || {
+  servers: [
+    { name: "🇩🇪 DE UDP 53 (Hysteria)", protocol: "hysteria1", host: "91.107.175.87", port: "20000-50000", obfs: "kobe" },
+    { name: "🇸🇬 SG VLESS 443 (TLS)", protocol: "v2ray", host: "v2.skvps.xyz", port: "443", tls: true },
+    { name: "🇸🇬 SG VLESS 80 (WS)", protocol: "v2ray", host: "v2.skvps.xyz", port: "80", tls: false }
+  ],
+  payloads: [
+    { name: "⚡ UDP Hysteria Auto-Mode", mode: "udp", path: "", sni: "", bugHost: "" },
+    { name: "🇸🇦 SAUDI STC 443 (Business TLS)", mode: "443", path: "/ws-kobe", sni: "stc.com.sa", bugHost: "dns2-448947328279.europe-west3.run.app" },
+    { name: "🇰🇼 Kuwait Zain 443 (TLS)", mode: "443", path: "/ws-kobe", sni: "zain.com", bugHost: "zain.com" },
+    { name: "🇧🇩 BD Free Net 80 (WS)", mode: "80", path: "/ws-kobe", sni: "", bugHost: "://facebook.com" }
+  ]
+};
+
+window.onload = () => {
+  document.getElementById("ghToken").value = localStorage.getItem("svip_gh_token") || "";
+  renderAll();
+};
+
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("tab-home").style.display = tab === "home" ? "block" : "none";
+  document.getElementById("tab-server").style.display = tab === "server" ? "block" : "none";
+  document.getElementById("tab-payload").style.display = tab === "payload" ? "block" : "none";
+  document.getElementById("fabBtn").style.display = tab === "home" ? "none" : "block";
+}
+
+function renderAll() {
+  localStorage.setItem("svip_gen_v2", JSON.stringify(appData));
+  document.getElementById("tab-server").innerHTML = appData.servers.map((s, i) => `
+    <div class="card">
+      <div><div class="card-title">${s.name}</div><div class="card-sub">${s.protocol.toUpperCase()} • ${s.host}:${s.port}</div></div>
+      <div class="actions"><button onclick="openModal(${i})">✏️</button><button class="del" onclick="delItem('servers', ${i})">✖</button></div>
+    </div>`).join("");
+
+  document.getElementById("tab-payload").innerHTML = appData.payloads.map((p, i) => `
+    <div class="card">
+      <div><div class="card-title">${p.name}</div><div class="card-sub">MODE: ${(p.mode||'443').toUpperCase()} • SNI: ${p.sni || 'N/A'}</div></div>
+      <div class="actions"><button onclick="openModal(${i})">✏️</button><button class="del" onclick="delItem('payloads', ${i})">✖</button></div>
+    </div>`).join("");
+}
+
+function openModal(idx = -1) {
+  editIndex = idx;
+  const f = document.getElementById("modalFields");
+  if (currentTab === "server") {
+    const s = idx >= 0 ? appData.servers[idx] : { name: "", protocol: "v2ray", host: "", port: "443", obfs: "kobe", tls: true };
+    document.getElementById("modalTitle").innerText = idx >= 0 ? "Edit Server" : "Add Server";
+    f.innerHTML = `
+      <label>Server Name:</label><input id="f_name" value="${s.name}">
+      <label>Protocol:</label>
+      <select id="f_proto"><option value="v2ray" ${s.protocol==='v2ray'?'selected':''}>V2Ray / Xray</option><option value="hysteria1" ${s.protocol==='hysteria1'?'selected':''}>UDP Hysteria</option></select>
+      <label>IP / Domain:</label><input id="f_host" value="${s.host}">
+      <label>Port (443, 80 বা 20000-50000):</label><input id="f_port" value="${s.port}">
+      <label>Obfs (UDP হলে):</label><input id="f_obfs" value="${s.obfs || 'kobe'}">`;
+  } else {
+    const p = idx >= 0 ? appData.payloads[idx] : { name: "", mode: "443", path: "/ws-kobe", sni: "", bugHost: "" };
+    document.getElementById("modalTitle").innerText = idx >= 0 ? "Edit Payload" : "Add Payload";
+    f.innerHTML = `
+      <label>Payload Name:</label><input id="p_name" value="${p.name}">
+      <label>Auto-Match Mode (কোন সার্ভারে অটো আসবে):</label>
+      <select id="p_mode">
+        <option value="udp" ${p.mode==='udp'?'selected':''}>UDP Server Only</option>
+        <option value="443" ${p.mode==='443'?'selected':''}>443 Server Only (TLS / Business)</option>
+        <option value="80" ${p.mode==='80'?'selected':''}>80 Server Only (WS Non-TLS)</option>
+      </select>
+      <label>Path:</label><input id="p_path" value="${p.path}">
+      <label>SNI:</label><input id="p_sni" value="${p.sni}">
+      <label>Bug Host:</label><input id="p_bug" value="${p.bugHost}">`;
+  }
+  document.getElementById("editModal").style.display = "block";
+}
+
+function closeModal() { document.getElementById("editModal").style.display = "none"; }
+
+function saveItem() {
+  if (currentTab === "server") {
+    const port = document.getElementById("f_port").value.trim();
+    const item = { name: document.getElementById("f_name").value, protocol: document.getElementById("f_proto").value, host: document.getElementById("f_host").value, port: port, obfs: document.getElementById("f_obfs").value, tls: port === "443" };
+    if (editIndex >= 0) appData.servers[editIndex] = item; else appData.servers.push(item);
+  } else {
+    const item = { name: document.getElementById("p_name").value, mode: document.getElementById("p_mode").value, path: document.getElementById("p_path").value, sni: document.getElementById("p_sni").value, bugHost: document.getElementById("p_bug").value };
+    if (editIndex >= 0) appData.payloads[editIndex] = item; else appData.payloads.push(item);
+  }
+  closeModal(); renderAll();
+}
+
+function delItem(t, i) { if (confirm("Delete?")) { appData[t].splice(i, 1); renderAll(); } }
+function saveToken() { localStorage.setItem("svip_gh_token", document.getElementById("ghToken").value.trim()); alert("Saved!"); }
+
+function encryptSvip(text) {
+  let encoded = "";
+  for (let i = 0; i < text.length; i++) encoded += String.fromCharCode(text.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length));
+  return "SVIP1::" + btoa(unescape(encodeURIComponent(encoded)));
+}
+
+async function pushToGithub() {
+  const token = localStorage.getItem("svip_gh_token");
+  if (!token) { alert("আগে HOME ট্যাবে Token দিন!"); return; }
+  const btn = document.querySelector(".push-btn");
+  btn.innerText = "⏳...";
+  const locked = btoa(encryptSvip(JSON.stringify(appData)));
+  const url = `https://github.com{OWNER}/${REPO}/contents/${FILE_PATH}`;
+  try {
+    let sha = "";
+    const g = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
+    if (g.ok) sha = (await g.json()).sha;
