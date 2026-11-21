@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
       - name: Build Android Gen APK
         run: |
           mkdir -p www && cp config_maker.html www/index.html
