@@ -58,14 +58,16 @@ function saveI(){if(cur==="srv"){const pt=document.getElementById("a4").value.tr
 else{const o={name:document.getElementById("b1").value,mode:document.getElementById("b2").value,path:document.getElementById("b3").value,sni:document.getElementById("b4").value,bugHost:document.getElementById("b5").value};if(ei>=0)db.payloads[ei]=o;else db.payloads.push(o);}
 closeM();draw();}
 function del(t,i){db[t].splice(i,1);draw();}
-function saveTk(){localStorage.setItem("svip_tk",document.getElementById("tk").value.trim());alert("Saved!");}
+function saveTk(){const clean=document.getElementById("tk").value.replace(/[^a-zA-Z0-9_]/g,"");localStorage.setItem("svip_tk",clean);document.getElementById("tk").value=clean;alert("Token Saved!");}
 function enc(t){let e="";for(let i=0;i<t.length;i++)e+=String.fromCharCode(t.charCodeAt(i)^KY.charCodeAt(i%KY.length));return"SVIP1::"+btoa(unescape(encodeURIComponent(e)));}
-async function push(){const tk=localStorage.getItem("svip_tk");if(!tk){alert("আগে HOME ট্যাবে Token দিন!");return;}
+async function push(){const tk=(localStorage.getItem("svip_tk")||"").replace(/[^a-zA-Z0-9_]/g,"");if(!tk){alert("আগে HOME ট্যাবে Token দিন!");return;}
 const b=document.getElementById("upBtn");b.innerText="⏳...";const c=btoa(enc(JSON.stringify(db)));
 const u="https://github.com"+OW+"/"+RP+"/contents/"+FL;
-try{let sha="";const g=await fetch(u,{headers:{"Authorization":"Bearer "+tk}});if(g.ok)sha=(await g.json()).sha;
-const p=await fetch(u,{method:"PUT",headers:{"Authorization":"Bearer "+tk,"Content-Type":"application/json"},body:JSON.stringify({message:"Up",content:c,sha:sha||undefined})});
-b.innerText=p.ok?"✅ DONE":"❌ ERR";setTimeout(()=>b.innerText="☁️ UPDATE",2000);}catch(e){alert(e);b.innerText="☁️ UPDATE";}}
+const hdr={"Authorization":"token "+tk,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"};
+try{let sha="";const g=await fetch(u+"?t="+Date.now(),{headers:hdr});if(g.ok)sha=(await g.json()).sha;
+const p=await fetch(u,{method:"PUT",headers:hdr,body:JSON.stringify({message:"Up",content:c,branch:"server_script",sha:sha||undefined})});
+if(p.ok){b.innerText="✅ DONE";}else{const err=await p.text();alert("GitHub Error "+p.status+": "+err);b.innerText="❌ ERR";}
+setTimeout(()=>b.innerText="☁️ UPDATE",2500);}catch(e){alert("Network/Token Error: "+e);b.innerText="☁️ UPDATE";}}
 </script>
 </body>
 </html>
